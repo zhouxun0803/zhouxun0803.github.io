@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useHomeFooterConfig } from '../composables/config/blog'
 import packageJSON from '../../package.json'
 import { copyrightSVG, icpSVG, themeSVG } from '../constants/svg'
@@ -7,12 +7,40 @@ import { vOuterHtml } from '../directives'
 
 const footerConfig = useHomeFooterConfig()
 
+// 响应式数据
+const blogRunTime = ref('0 d 0 h 0 m 0 s')
+const currentYear = ref('2026')
+
+// 计算运行时间
+function updateRunTime() {
+  const targetDate = new Date('2023-12-29T00:00:00')
+  const currentDate = new Date()
+  const timeDiff = currentDate.getTime() - targetDate.getTime()
+
+  const days = Math.floor(timeDiff / (1000 * 60 * 60 * 24))
+  const hours = Math.floor((timeDiff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))
+  const minutes = Math.floor((timeDiff % (1000 * 60 * 60)) / (1000 * 60))
+  const seconds = Math.floor((timeDiff % (1000 * 60)) / 1000)
+
+  blogRunTime.value = `${days} d ${hours} h ${minutes} m ${seconds} s`
+}
+
+// 更新年份
+function updateYear() {
+  currentYear.value = String(new Date().getFullYear())
+}
+
+onMounted(() => {
+  updateRunTime()
+  updateYear()
+  // 每秒更新运行时间
+  setInterval(updateRunTime, 1000)
+})
+
 const renderData = computed(() => {
   const footerData = footerConfig.value
-  if (!footerData) {
-    return []
-  }
-  const flatData = [footerData].flat()
+  // 总是返回至少一个 footer 对象
+  const flatData = footerData ? [footerData].flat() : [{}]
   return flatData.flat().map((footer, idx) => {
     const { icpRecord, securityRecord, copyright, version, message, bottomMessage, list } = footer
     const data: ({
@@ -20,8 +48,11 @@ const renderData = computed(() => {
       link?: string
       icon?: string | boolean
     } | string) [] = []
-    // message
-    const messageData = [message || []].flat()
+    // message - 使用固定内容
+    const messageData = [{
+      runTime: blogRunTime.value,
+      year: currentYear.value
+    }]
     const bottomMessageData = [bottomMessage || []].flat()
 
     // version
@@ -86,12 +117,18 @@ const renderData = computed(() => {
 </script>
 
 <template>
-  <footer v-if="renderData.length" class="blog-footer">
+  <footer class="blog-footer">
     <!-- eslint-disable vue/require-v-for-key -->
     <!-- see https://cn.vuejs.org/guide/essentials/list.html#v-for-on-template -->
     <template v-for="({ data, messageData, bottomMessageData }) in renderData">
       <!-- 在内置footer上方渲染 -->
-      <p v-for="message in messageData" v-html="message" />
+      <div v-for="msg in messageData" class="footer-message">
+        <div>
+          This blog has running : <span>{{ msg.runTime }}</span>
+          <span class="animated-face">ღゝ◡╹)ノ♡</span>
+        </div>
+        <div>Copyright © <span>{{ msg.year }}</span> 勋染 Powered by .NET 8.0 on Kubernetes</div>
+      </div>
       <!-- 内置的列表 -->
       <p class="footer-item-list">
         <template v-for="item in data">
@@ -128,6 +165,47 @@ footer.blog-footer p {
   font-size: 14px;
   font-weight: 500;
   color: var(--vp-c-text-2);
+}
+
+.footer-message {
+  text-align: center;
+  padding: 15px 0;
+  font-size: 14px;
+  color: var(--vp-c-text-2);
+  line-height: 24px;
+}
+
+.animated-face {
+  animation: my-face 5s infinite ease-in-out;
+  display: inline-block;
+  margin: 0 5px;
+}
+
+@keyframes my-face {
+  2%, 25%, 80% { transform: translate(0, 1.5px) rotate(1.5deg); }
+  4%, 68%, 98% { transform: translate(0, -1.5px) rotate(-.5deg); }
+  38%, 6% { transform: translate(0, 1.5px) rotate(-1.5deg); }
+  8%, 86% { transform: translate(0, -1.5px) rotate(-1.5deg); }
+  10%, 72% { transform: translate(0, 2.5px) rotate(1.5deg); }
+  12%, 64%, 78%, 96% { transform: translate(0, -0.5px) rotate(1.5deg); }
+  14%, 54% { transform: translate(0, -1.5px) rotate(1.5deg); }
+  16% { transform: translate(0, -0.5px) rotate(-1.5deg); }
+  18%, 22% { transform: translate(0, 0.5px) rotate(-1.5deg); }
+  20%, 36%, 46% { transform: translate(0, -1.5px) rotate(2.5deg); }
+  26%, 50% { transform: translate(0, 0.5px) rotate(.5deg); }
+  28% { transform: translate(0, 0.5px) rotate(1.5deg); }
+  30%, 40%, 62%, 76%, 88% { transform: translate(0, -0.5px) rotate(2.5deg); }
+  32%, 34%, 66% { transform: translate(0, 1.5px) rotate(-.5deg); }
+  42% { transform: translate(0, 2.5px) rotate(-1.5deg); }
+  44%, 70% { transform: translate(0, 1.5px) rotate(.5deg); }
+  48%, 74%, 82% { transform: translate(0, -0.5px) rotate(.5deg); }
+  52%, 56%, 60% { transform: translate(0, 2.5px) rotate(2.5deg); }
+  58% { transform: translate(0, 0.5px) rotate(2.5deg); }
+  84% { transform: translate(0, 1.5px) rotate(2.5deg); }
+  90% { transform: translate(0, 2.5px) rotate(-.5deg); }
+  92% { transform: translate(0, 0.5px) rotate(-.5deg); }
+  94% { transform: translate(0, 2.5px) rotate(.5deg); }
+  0%, 100% { transform: translate(0, 0) rotate(0); }
 }
 
 .footer-item-list {
