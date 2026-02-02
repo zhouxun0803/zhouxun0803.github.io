@@ -105,7 +105,8 @@ export default defineConfig({
           { text: '技术概念', link: '/technology/theory/' },
           { text: '个人作品', link: '/technology/works/' },
           { text: '学习笔记', link: '/technology/study/' },
-          { text: 'VR技术', link: '/technology/vr/' },
+          // { text: 'VR技术', link: '/technology/vr/' },
+          { text: 'threejs', link: '/technology/threejs/' }
         ]
       },
       {
