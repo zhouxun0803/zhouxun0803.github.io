@@ -94,7 +94,7 @@ const openTransition = useDarkTransitionConfig()
       </ClientOnly>
     </template>
     <template #layout-bottom>
-      <BlogFooter v-if="layout === 'home'" />
+      <BlogFooter />
       <slot name="layout-bottom" />
     </template>
     <!-- 透传默认主题的其它插槽 -->
