@@ -40,6 +40,14 @@ export default defineConfig({
       'link',
       { rel: 'apple-touch-icon', href: '/favicon.ico', sizes: '180x180' }
     ],
+    // SalesMartly 脚本 - 插入到 </body> 之前
+    [
+      'script',
+      {
+        src: 'https://plugin-code.salesmartly.com/js/project_620363_640115_1770022967.js',
+        async: 'true'
+      }
+    ],
   ],
   vite: {
     plugins: [
